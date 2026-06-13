@@ -92,3 +92,31 @@ def get_nearest_liquidity(price, zones):
     nearest_sell = max(sell_side) if sell_side else None
 
     return nearest_buy, nearest_sell
+
+def detect_liquidity_sweep(candle, buy_liq, sell_liq):
+    """
+    Detects liquidity sweeps.
+
+    Returns:
+    BUY_SIDE_SWEEP
+    SELL_SIDE_SWEEP
+    NONE
+    """
+
+    # Buy-side liquidity swept
+    if (
+        buy_liq is not None
+        and candle["high"] > buy_liq
+        and candle["close"] < buy_liq
+    ):
+        return "BUY_SIDE_SWEEP"
+
+    # Sell-side liquidity swept
+    if (
+        sell_liq is not None
+        and candle["low"] < sell_liq
+        and candle["close"] > sell_liq
+    ):
+        return "SELL_SIDE_SWEEP"
+
+    return "NONE"
