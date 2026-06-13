@@ -247,3 +247,34 @@ def detect_order_block(df):
                     break
 
     return bullish_ob, bearish_ob
+
+
+def is_order_block_unmitigated(df, order_block):
+    """
+    Checks if an order block is unmitigated.
+
+    Unmitigated means:
+    after the OB forms, price has NOT returned into its zone.
+
+    OB zone = low to high.
+    """
+
+    if order_block is None:
+        return False
+
+    ob_index = order_block["index"]
+    ob_high = order_block["high"]
+    ob_low = order_block["low"]
+
+    future_candles = df.iloc[ob_index + 1:]
+
+    for _, candle in future_candles.iterrows():
+        candle_touches_ob = (
+            candle["low"] <= ob_high
+            and candle["high"] >= ob_low
+        )
+
+        if candle_touches_ob:
+            return False
+
+    return True
