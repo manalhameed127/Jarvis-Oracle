@@ -120,3 +120,42 @@ def detect_liquidity_sweep(candle, buy_liq, sell_liq):
         return "SELL_SIDE_SWEEP"
 
     return "NONE"
+
+def get_last_swing_levels(df):
+    """
+    Gets the most recent swing high and swing low.
+    """
+
+    swing_highs = df[df["swing_high"]]
+    swing_lows = df[df["swing_low"]]
+
+    last_swing_high = None
+    last_swing_low = None
+
+    if not swing_highs.empty:
+        last_swing_high = swing_highs.iloc[-1]["high"]
+
+    if not swing_lows.empty:
+        last_swing_low = swing_lows.iloc[-1]["low"]
+
+    return last_swing_high, last_swing_low
+
+
+def detect_bos(candle, last_swing_high, last_swing_low):
+    """
+    Detects Break of Structure.
+
+    Bullish BOS:
+    candle closes above last swing high
+
+    Bearish BOS:
+    candle closes below last swing low
+    """
+
+    if last_swing_high is not None and candle["close"] > last_swing_high:
+        return "BULLISH_BOS"
+
+    if last_swing_low is not None and candle["close"] < last_swing_low:
+        return "BEARISH_BOS"
+
+    return "NO_BOS"
