@@ -159,3 +159,91 @@ def detect_bos(candle, last_swing_high, last_swing_low):
         return "BEARISH_BOS"
 
     return "NO_BOS"
+
+def detect_fvg(df):
+    """
+    Detect Fair Value Gaps.
+
+    Bullish FVG:
+    Candle3 low > Candle1 high
+
+    Bearish FVG:
+    Candle3 high < Candle1 low
+    """
+
+    df["bullish_fvg"] = False
+    df["bearish_fvg"] = False
+
+    for i in range(2, len(df)):
+
+        # Bullish FVG
+        if (
+            df["low"].iloc[i]
+            > df["high"].iloc[i - 2]
+        ):
+            df.loc[df.index[i], "bullish_fvg"] = True
+
+        # Bearish FVG
+        if (
+            df["high"].iloc[i]
+            < df["low"].iloc[i - 2]
+        ):
+            df.loc[df.index[i], "bearish_fvg"] = True
+
+    return df
+
+def detect_order_block(df):
+    """
+    Finds the last opposite candle before BOS.
+
+    Returns:
+    Bullish OB
+    Bearish OB
+    """
+
+    bullish_ob = None
+    bearish_ob = None
+
+    for i in range(3, len(df)):
+
+        # Bullish BOS
+        if (
+            df["close"].iloc[i]
+            > df["high"].iloc[i - 1]
+        ):
+
+            # search backwards for last bearish candle
+            for j in range(i - 1, max(i - 15, 0), -1):
+
+                if df["close"].iloc[j] < df["open"].iloc[j]:
+
+                    bullish_ob = {
+                        "index": j,
+                        "high": df["high"].iloc[j],
+                        "low": df["low"].iloc[j],
+                        "open_time": df["open_time"].iloc[j]
+                    }
+
+                    break
+
+        # Bearish BOS
+        if (
+            df["close"].iloc[i]
+            < df["low"].iloc[i - 1]
+        ):
+
+            # search backwards for last bullish candle
+            for j in range(i - 1, max(i - 15, 0), -1):
+
+                if df["close"].iloc[j] > df["open"].iloc[j]:
+
+                    bearish_ob = {
+                        "index": j,
+                        "high": df["high"].iloc[j],
+                        "low": df["low"].iloc[j],
+                        "open_time": df["open_time"].iloc[j]
+                    }
+
+                    break
+
+    return bullish_ob, bearish_ob
