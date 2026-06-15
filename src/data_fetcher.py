@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 
 
-def fetch_binance_klines(symbol="BTCUSDT", interval="15m", limit=500):
+def fetch_binance_klines(symbol="BTCUSDT", interval="15m", limit=1000):
     url = "https://api.binance.com/api/v3/klines"
 
     params = {
@@ -31,5 +31,7 @@ def fetch_binance_klines(symbol="BTCUSDT", interval="15m", limit=500):
 
 
 if __name__ == "__main__":
-    candles = fetch_binance_klines("BTCUSDT", "15m", 100)
-    print(candles.tail())
+    candles = fetch_binance_klines("BTCUSDT", "15m", 1000)
+
+    print("First candle:", candles.iloc[0]["open_time"])
+    print("Last candle:", candles.iloc[-1]["open_time"])
