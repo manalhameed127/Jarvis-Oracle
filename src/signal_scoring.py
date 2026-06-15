@@ -7,24 +7,30 @@ def calculate_signal_score(
 ):
     score = 0
 
-    # EMA
     if ema_signal != "NEUTRAL":
         score += 10
 
-    # Liquidity Sweep
     if liquidity_sweep != "NONE":
         score += 30
 
-    # BOS
     if bos_signal != "NO_BOS":
         score += 20
 
-    # FVG
     if has_fvg:
         score += 15
 
-    # Order Block
     if valid_order_block:
         score += 25
 
     return score
+
+
+def get_signal_decision(score):
+    if score >= 80:
+        return "STRONG_TRADE"
+    elif score >= 60:
+        return "MEDIUM_TRADE"
+    elif score >= 40:
+        return "WATCH_ONLY"
+    else:
+        return "NO_TRADE"
