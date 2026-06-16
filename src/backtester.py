@@ -55,6 +55,29 @@ def is_valid_trade_setup(setup):
     return False
 
 
+def wait_for_entry(future_df, direction, entry_price):
+    """
+    Wait for price to retest the entry level.
+
+    Returns:
+    True if entry gets filled
+    False otherwise
+    """
+
+    for _, candle in future_df.iterrows():
+
+        if direction == "LONG":
+
+            if candle["low"] <= entry_price:
+                return True
+
+        elif direction == "SHORT":
+
+            if candle["high"] >= entry_price:
+                return True
+
+    return False
+
 def run_backtest(symbol="BTCUSDT", interval="15m", limit=1000):
     df = fetch_binance_klines(symbol, interval, limit)
 
