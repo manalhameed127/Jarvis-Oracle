@@ -15,6 +15,17 @@ from src.signal_scoring import calculate_signal_score, get_signal_decision
 from src.trade_setup import generate_trade_setup
 
 
+def wait_for_entry(future_df, direction, entry_price):
+    for _, candle in future_df.iterrows():
+        if direction == "LONG" and candle["low"] <= entry_price:
+            return True
+
+        if direction == "SHORT" and candle["high"] >= entry_price:
+            return True
+
+    return False
+
+
 def check_trade_result(future_df, direction, entry, stop_loss, take_profit):
     for _, candle in future_df.iterrows():
         if direction == "LONG":
@@ -54,29 +65,6 @@ def is_valid_trade_setup(setup):
 
     return False
 
-
-def wait_for_entry(future_df, direction, entry_price):
-    """
-    Wait for price to retest the entry level.
-
-    Returns:
-    True if entry gets filled
-    False otherwise
-    """
-
-    for _, candle in future_df.iterrows():
-
-        if direction == "LONG":
-
-            if candle["low"] <= entry_price:
-                return True
-
-        elif direction == "SHORT":
-
-            if candle["high"] >= entry_price:
-                return True
-
-    return False
 
 def run_backtest(symbol="BTCUSDT", interval="15m", limit=1000):
     df = fetch_binance_klines(symbol, interval, limit)
@@ -123,12 +111,10 @@ def run_backtest(symbol="BTCUSDT", interval="15m", limit=1000):
             direction = "LONG"
             selected_ob = bullish_ob
             nearest_tp = buy_liq
-
         elif ema_signal == "SHORT":
             direction = "SHORT"
             selected_ob = bearish_ob
             nearest_tp = sell_liq
-
         else:
             direction = None
             selected_ob = None
@@ -162,6 +148,16 @@ def run_backtest(symbol="BTCUSDT", interval="15m", limit=1000):
             continue
 
         future_df = df.iloc[i:i + 20]
+
+        entry_filled = wait_for_entry(
+            future_df,
+            setup["direction"],
+            setup["entry"]
+        )
+
+        if not entry_filled:
+            i += 20
+            continue
 
         result = check_trade_result(
             future_df,
