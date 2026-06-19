@@ -1,8 +1,7 @@
-import requests
-import pandas as pd
-
-
 def fetch_binance_klines(symbol="BTCUSDT", interval="15m", limit=1000):
+    import pandas as pd
+    import requests
+
     url = "https://api.binance.com/api/v3/klines"
 
     params = {

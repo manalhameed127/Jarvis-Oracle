@@ -13,9 +13,10 @@ from src.market_structure import (
 )
 from src.signal_scoring import calculate_signal_score, get_signal_decision
 from src.trade_setup import generate_trade_setup
+from src.trend_filter import get_trend_alignment
 
 
-def analyze_coin(symbol="BTCUSDT", interval="15m", limit=200):
+def analyze_coin(symbol="BTCUSDT", interval="15m", limit=200, use_trend_filter=False):
     df = fetch_binance_klines(symbol, interval, limit)
 
     df = add_ema(df, 50)
@@ -35,7 +36,9 @@ def analyze_coin(symbol="BTCUSDT", interval="15m", limit=200):
     last_swing_high, last_swing_low = get_last_swing_levels(df)
     bos_signal = detect_bos(latest_candle, last_swing_high, last_swing_low)
 
-    has_fvg = bool(latest_candle["bullish_fvg"] or latest_candle["bearish_fvg"])
+    bullish_fvg = bool(latest_candle["bullish_fvg"])
+    bearish_fvg = bool(latest_candle["bearish_fvg"])
+    has_fvg = bool(bullish_fvg or bearish_fvg)
 
     bullish_ob, bearish_ob = detect_order_block(df)
 
@@ -54,15 +57,44 @@ def analyze_coin(symbol="BTCUSDT", interval="15m", limit=200):
 
     valid_order_block = is_order_block_unmitigated(df, selected_ob)
 
-    score = calculate_signal_score(
+    base_score = calculate_signal_score(
         ema_signal,
         liquidity_sweep,
         bos_signal,
         has_fvg,
-        valid_order_block
+        valid_order_block,
+        direction=direction,
+        bullish_fvg=bullish_fvg,
+        bearish_fvg=bearish_fvg
     )
 
-    decision = get_signal_decision(score)
+    trend_alignment = (
+        get_trend_alignment(symbol)
+        if use_trend_filter
+        else {"direction": "NOT_USED", "alignment_score": 0}
+    )
+
+    if (
+        use_trend_filter
+        and direction is not None
+        and trend_alignment["direction"] != direction
+    ):
+        score = base_score
+        decision = "NO_TRADE"
+    else:
+        score = calculate_signal_score(
+            ema_signal,
+            liquidity_sweep,
+            bos_signal,
+            has_fvg,
+            valid_order_block,
+            alignment_score=trend_alignment["alignment_score"],
+            direction=direction,
+            bullish_fvg=bullish_fvg,
+            bearish_fvg=bearish_fvg
+        )
+
+        decision = get_signal_decision(score)
 
     if decision in ["STRONG_TRADE", "MEDIUM_TRADE"]:
         setup = generate_trade_setup(direction, score, selected_ob, nearest_tp)
@@ -76,7 +108,11 @@ def analyze_coin(symbol="BTCUSDT", interval="15m", limit=200):
         "liquidity_sweep": liquidity_sweep,
         "bos_signal": bos_signal,
         "has_fvg": has_fvg,
+        "bullish_fvg": bullish_fvg,
+        "bearish_fvg": bearish_fvg,
         "valid_order_block": valid_order_block,
+        "trend_alignment": trend_alignment,
+        "base_score": base_score,
         "score": score,
         "decision": decision,
         "setup": setup

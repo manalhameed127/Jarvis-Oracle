@@ -14,6 +14,7 @@ def print_result(result):
     print("BOS:", result["bos_signal"])
     print("FVG:", result["has_fvg"])
     print("Valid Order Block:", result["valid_order_block"])
+    print("Trend Alignment:", result["trend_alignment"])
     print("Score:", result["score"])
     print("Decision:", result["decision"])
 

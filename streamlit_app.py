@@ -38,6 +38,7 @@ if st.button("Scan Market"):
         st.write("BOS:", result["bos_signal"])
         st.write("FVG:", result["has_fvg"])
         st.write("Valid Order Block:", result["valid_order_block"])
+        st.write("Trend Alignment:", result["trend_alignment"])
 
         if result["setup"]:
             st.success("Trade Setup Found")
