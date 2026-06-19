@@ -10,7 +10,8 @@ for symbol in WATCHLIST:
     order = create_paper_order(
         symbol=symbol,
         balance=BALANCE,
-        risk_per_trade=RISK_PER_TRADE
+        risk_per_trade=RISK_PER_TRADE,
+        save_order=True
     )
 
     print("\n" + "=" * 50)
@@ -28,5 +29,6 @@ for symbol in WATCHLIST:
         print("Quantity:", order["quantity"])
         print("Score:", order["score"])
         print("Decision:", order["decision"])
+        print("Paper Trade ID:", order["paper_trade_id"])
     else:
         print("Reason:", order["reason"])
