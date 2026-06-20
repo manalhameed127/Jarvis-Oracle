@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from src.analyzer import analyze_coin
+from src.data_fetcher import fetch_binance_klines
 from src.risk_manager import (
     calculate_position_size,
     calculate_trade_risk,
@@ -111,3 +112,50 @@ def record_paper_order(order, path=PAPER_TRADES_FILE):
         "paper_trade_id": saved_order["id"],
         "journal_status": "SAVED"
     }
+
+
+def check_exit_hit(trade, candles):
+    for _, candle in candles.iterrows():
+        if trade["direction"] == "LONG":
+            if candle["low"] <= trade["stop_loss"]:
+                return "LOSS", trade["stop_loss"]
+            if candle["high"] >= trade["take_profit"]:
+                return "WIN", trade["take_profit"]
+
+        if trade["direction"] == "SHORT":
+            if candle["high"] >= trade["stop_loss"]:
+                return "LOSS", trade["stop_loss"]
+            if candle["low"] <= trade["take_profit"]:
+                return "WIN", trade["take_profit"]
+
+    return None, None
+
+
+def monitor_paper_trades(interval="15m", limit=20, path=PAPER_TRADES_FILE):
+    trades = load_paper_trades(path)
+    updated_trades = []
+
+    for trade in trades:
+        if trade["status"] != "OPEN":
+            continue
+
+        candles = fetch_binance_klines(
+            symbol=trade["symbol"],
+            interval=interval,
+            limit=limit
+        )
+
+        result, exit_price = check_exit_hit(trade, candles)
+
+        if result is None:
+            continue
+
+        trade["status"] = "CLOSED"
+        trade["result"] = result
+        trade["exit_price"] = exit_price
+        trade["closed_at"] = datetime.now(timezone.utc).isoformat()
+        updated_trades.append(trade)
+
+    save_paper_trades(trades, path)
+
+    return updated_trades
