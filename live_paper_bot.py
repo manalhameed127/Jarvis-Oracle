@@ -2,6 +2,7 @@ import time
 from datetime import datetime
 
 from src.paper_trader import create_paper_order, monitor_paper_trades
+from src.scan_logger import record_scan_result
 from src.watchlist import WATCHLIST
 
 
@@ -54,12 +55,16 @@ def run_scan_cycle():
 
         print("\n" + symbol)
         print("-" * len(symbol))
+        scan_entry = record_scan_result(symbol, order)
 
         if order["status"] == "PAPER_ORDER_CREATED":
             print_created_order(order)
         else:
             print("Status:", order["status"])
             print("Reason:", order["reason"])
+            print("Score:", scan_entry["score"])
+            print("Decision:", scan_entry["decision"])
+            print("Pattern:", scan_entry["pattern_prediction"])
 
 
 def main(run_once=True):
