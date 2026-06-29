@@ -15,6 +15,7 @@ def print_result(result):
     print("FVG:", result["has_fvg"])
     print("Valid Order Block:", result["valid_order_block"])
     print("Trend Alignment:", result["trend_alignment"])
+    print("Pattern Model:", result["pattern_prediction"])
     print("Score:", result["score"])
     print("Decision:", result["decision"])
 

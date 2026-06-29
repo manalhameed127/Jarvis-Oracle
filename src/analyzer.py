@@ -12,11 +12,18 @@ from src.market_structure import (
     is_order_block_unmitigated
 )
 from src.signal_scoring import calculate_signal_score, get_signal_decision
+from src.pattern_confirmation import get_pattern_confirmation
 from src.trade_setup import generate_trade_setup
 from src.trend_filter import get_trend_alignment
 
 
-def analyze_coin(symbol="BTCUSDT", interval="15m", limit=200, use_trend_filter=False):
+def analyze_coin(
+    symbol="BTCUSDT",
+    interval="15m",
+    limit=200,
+    use_trend_filter=False,
+    use_pattern_model=True
+):
     df = fetch_binance_klines(symbol, interval, limit)
 
     df = add_ema(df, 50)
@@ -101,6 +108,17 @@ def analyze_coin(symbol="BTCUSDT", interval="15m", limit=200, use_trend_filter=F
     else:
         setup = None
 
+    pattern_prediction = (
+        get_pattern_confirmation(df, symbol, interval)
+        if use_pattern_model
+        else {
+            "status": "NOT_USED",
+            "label": None,
+            "confidence": 0,
+            "image_path": None
+        }
+    )
+
     return {
         "symbol": symbol,
         "price": round(float(current_price), 2),
@@ -112,6 +130,7 @@ def analyze_coin(symbol="BTCUSDT", interval="15m", limit=200, use_trend_filter=F
         "bearish_fvg": bearish_fvg,
         "valid_order_block": valid_order_block,
         "trend_alignment": trend_alignment,
+        "pattern_prediction": pattern_prediction,
         "base_score": base_score,
         "score": score,
         "decision": decision,
