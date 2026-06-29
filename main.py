@@ -16,6 +16,7 @@ def print_result(result):
     print("Valid Order Block:", result["valid_order_block"])
     print("Trend Alignment:", result["trend_alignment"])
     print("Pattern Model:", result["pattern_prediction"])
+    print("Technicals:", result["technical_confirmation"])
     print("Score:", result["score"])
     print("Decision:", result["decision"])
 

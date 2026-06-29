@@ -40,6 +40,7 @@ if st.button("Scan Market"):
         st.write("Valid Order Block:", result["valid_order_block"])
         st.write("Trend Alignment:", result["trend_alignment"])
         st.write("Pattern Model:", result["pattern_prediction"])
+        st.write("Technicals:", result["technical_confirmation"])
 
         if result["setup"]:
             st.success("Trade Setup Found")

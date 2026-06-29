@@ -13,6 +13,7 @@ from src.market_structure import (
 )
 from src.signal_scoring import calculate_signal_score, get_signal_decision
 from src.pattern_confirmation import get_pattern_confirmation
+from src.technicals import get_technical_confirmation
 from src.trade_setup import generate_trade_setup
 from src.trend_filter import get_trend_alignment
 
@@ -118,6 +119,7 @@ def analyze_coin(
             "image_path": None
         }
     )
+    technical_confirmation = get_technical_confirmation(df)
 
     return {
         "symbol": symbol,
@@ -131,6 +133,7 @@ def analyze_coin(
         "valid_order_block": valid_order_block,
         "trend_alignment": trend_alignment,
         "pattern_prediction": pattern_prediction,
+        "technical_confirmation": technical_confirmation,
         "base_score": base_score,
         "score": score,
         "decision": decision,
